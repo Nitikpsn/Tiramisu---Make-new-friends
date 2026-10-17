@@ -32,7 +32,6 @@ import {
 } from 'lucide-react'
 import { demoConversations, demoProfiles, type DemoProfile } from '../data/demo'
 import { formatInitials } from '../lib/utils'
-import '../styles/messages-copilot.css'
 
 type TabType = 'all' | 'unread' | 'groups'
 
