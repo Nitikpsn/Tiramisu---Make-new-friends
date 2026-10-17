@@ -175,17 +175,6 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
                 : "New here? Create an account"}
             </button>
           </div>
-          {!configured && (
-            <button
-              className="demo-preview-button"
-              onClick={() => {
-                sessionStorage.setItem("tiramisu-demo-mode", "true");
-                navigateTo("/discover?demo=1");
-              }}
-            >
-              <Sparkles size={14} /> Preview the demo in read-only mode
-            </button>
-          )}
           <button className="auth-back" onClick={() => navigateTo("/login")}>
             <ArrowLeft size={15} /> Back to login
           </button>

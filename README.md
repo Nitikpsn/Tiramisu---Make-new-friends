@@ -21,7 +21,7 @@ The dev server runs at `http://localhost:3000`.
 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=your-browser-safe-publishable-or-anon-key
 ```
 
 3. In **Authentication → URL Configuration**, add the local site URL (`http://localhost:3000`) and your deployed site URL.
