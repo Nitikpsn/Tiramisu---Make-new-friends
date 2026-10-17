@@ -1,90 +1,124 @@
 # Tiramisu — Make New Friends
 
-Tiramisu is a playful social discovery demo for a hackathon theme of **Using Technology for Joy**. It helps people discover nearby interests, break the ice with small games, and start low-pressure conversations.
+Tiramisu is a warm, playful social discovery app built around one idea: making a new friend should feel easy, low-pressure, and a little joyful.
 
-The visual direction is a **soft digital campfire**: deep navy surfaces, violet social signals, and Tiramisu Lime actions that feel like small pools of light in a night-time room.
+The product blends nearby discovery, soft social prompts, and lightweight messaging to help people find common ground without the awkwardness of a cold introduction.
+
+Live demo: https://tiramisu-make-new-friends.vercel.app/
+
+## Why this project exists
+
+Many social apps focus on speed, scale, or performance, but not on emotional ease. Tiramisu explores a more human approach to connection: friendly discovery, low-stakes interaction, and a design that feels welcoming from the first tap.
+
+It is built around the idea that small moments of joy can make conversation feel natural.
+
+## Key features
+
+- Nearby social discovery with a map-based experience
+- Search and interest filters to find people with similar energy
+- Profile cards with personality, interests, and ice-breaker prompts
+- Messaging flow designed for easy, low-pressure conversation
+- Joy Room with playful “Would You Rather” prompts
+- Privacy-conscious approximate location model instead of exact personal pins
+- Responsive interface designed for quick exploration on mobile and desktop
+- Supabase-ready architecture for auth and future real data persistence
+
+## Product experience
+
+### Discover
+Users can browse nearby people, explore shared interests, and get a quick sense of compatibility without forcing a formal introduction.
+
+### Joy Room
+The app includes fun, lightweight prompts that make it easier to start talking without a heavy social setup.
+
+### Messages
+The messaging experience is intentionally calm and approachable, with a playful tone that encourages meaningful but low-pressure conversation.
+
+### Privacy-first design
+Location is approximate and intentionally non-invasive, helping the experience feel social without becoming too personal or exposed.
+
+## Tech stack
+
+- React + TypeScript
+- Vite
+- Supabase-ready auth and database structure
+- Custom responsive UI and themed design system
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-The dev server runs at `http://localhost:3000`.
+Then open:
 
-## Connect Supabase Auth
+```text
+http://localhost:3000
+```
+
+## Supabase setup
 
 1. Create or open a Supabase project.
-2. In **Project Settings → API**, copy the project URL and the browser-safe publishable/anon key into `.env.local`:
+2. Add your project URL and anon key to a local environment file:
 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-publishable-or-anon-key
 ```
 
-3. In **Authentication → URL Configuration**, add the local site URL (`http://localhost:3000`) and your deployed site URL.
-4. Keep email/password auth enabled. The frontend uses `signInWithPassword`, `signUp`, `resetPasswordForEmail`, `getSession`, and `onAuthStateChange` from the official `@supabase/supabase-js` client.
-5. Restart `npm run dev` after changing `.env.local`.
+3. Add your local and production app URLs to the Supabase authentication redirect settings.
+4. Run the database schema in [`supabase/schema.sql`](./supabase/schema.sql).
 
-If the two variables are missing, Tiramisu intentionally shows a configuration state and does **not** pretend that a login succeeded.
+This project is designed to handle missing environment configuration gracefully and display a clear demo state instead of pretending auth is active.
 
-## Connect the database
+## Demo status
 
-Run [`supabase/schema.sql`](./supabase/schema.sql) in the Supabase SQL Editor. It creates:
+This is a polished front-end experience with a backend-ready foundation. Several pieces are intentionally demo-mode until real data flows are connected.
 
-- `profiles`, linked to `auth.users.id`, with visibility and approximate-location settings.
-- `conversations`, `conversation_members`, and `messages`.
-- A new-user trigger that creates a profile row from signup metadata.
-- Updated-at handling for profiles.
-- Row Level Security policies that keep conversations, membership, and messages private to authenticated members.
+Examples:
 
-The current UI keeps Discover profiles and Message threads clearly labelled as demo-only until a database query layer is wired to your chosen product flow. No sample message is presented as successfully persisted.
-
-## Voice / ElevenLabs readiness
-
-Voice controls are intentionally shown as placeholders. Do not put an ElevenLabs API key in browser code. A production implementation should call a secure server-side endpoint or Supabase Edge Function that:
-
-1. Receives an authenticated audio upload or text-to-speech request.
-2. Reads the ElevenLabs secret from server-side environment variables.
-3. Returns a transcript/audio URL to the browser.
-4. Lets the user review a transcript before inserting a message row.
-
-The `voice_transcript` field in the SQL schema is reserved for the reviewed transcript. Retention and storage policy should be decided before saving raw audio.
+- Discovery profiles are rendered from demo content
+- Messaging threads are local browser examples
+- Voice and transcription flows are planned integration points
+- Supabase auth and data structure are prepared for real implementation
 
 ## Feature status
 
-| Feature | Status | Notes |
-| --- | --- | --- |
-| Login, signup, forgot password | Connected when Supabase env vars are present | Real Supabase Auth; no fake success state |
-| Session persistence and logout | Connected when Supabase env vars are present | Uses Supabase session listener |
-| Protected app routes | Connected | Unauthenticated users return to login |
-| Discover map | Demo UI | Leaflet + OpenStreetMap with fictional approximate pins |
-| Search and interest filters | Working locally | Filters demo profiles in the browser |
-| Messages | Demo UI | Clearly labelled local sample threads; composer works in-browser |
-| Database schema / RLS | Ready to run | See `supabase/schema.sql` |
-| Supabase Realtime | Not enabled by default | SQL includes the optional publication note |
-| Joy Room | Fully playable locally | Would You Rather prompts, feedback, score, starters |
-| Profile editor | Local UI | Logout is real when Auth is connected; profile persistence can use the schema |
-| ElevenLabs voice | Placeholder | Requires secure endpoint or Edge Function |
+| Area | Status |
+| --- | --- |
+| Login and signup | Ready when Supabase is configured |
+| Session persistence | Ready with Supabase auth |
+| Protected routes | Included |
+| Discover map | Demo-playable |
+| Search and interest filtering | Working locally |
+| Joy Room | Fully playable |
+| Messaging UI | Demo-ready |
+| Supabase schema and RLS | Included |
+| Voice / transcription | Planned integration |
+
+## Project structure
+
+- `src/App.tsx` — app routing and auth-aware screen flow
+- `src/components/` — shell, navigation, map, cards, and shared UI
+- `src/pages/` — discover, messages, joy, auth, and profile screens
+- `src/data/demo.ts` — demo profiles, prompts, and conversation content
+- `src/lib/` — Supabase and auth helpers
+- `src/styles/` — theme and global styling
+- `supabase/schema.sql` — database schema and permissions
 
 ## Deployment
 
-For a static deployment, build with:
+Build for deployment with:
 
 ```bash
 npm run build
 ```
 
-Publish the generated `dist/` directory through Vercel, Netlify, Cloudflare Pages, or another static host. Set the two `VITE_` variables in that host’s environment settings and add its URL to Supabase Authentication URL Configuration. Never deploy a service-role key, database password, or ElevenLabs secret to the frontend.
+Then publish the generated `dist/` folder to a static host such as Vercel, Netlify, or Cloudflare Pages. Make sure Supabase environment variables are configured in the deployment environment.
 
-## Project structure
+## Final note
 
-- `src/components/` — app shell, navigation, map, cards, and shared controls.
-- `src/pages/` — auth, Discover, Messages, Joy Room, and Profile screens.
-- `src/data/demo.ts` — fictional people, prompts, and demo threads.
-- `src/lib/` — Supabase client, auth context, and navigation helpers.
-- `src/styles/global.css` — responsive design system and screen styling.
-- `supabase/schema.sql` — tables, trigger, and RLS policies.
-- `public/manus-routes.json` — complete preview route manifest.
+Tiramisu is a product-first social prototype focused on reducing social friction and making new connections feel more approachable, friendly, and human.
+
+It is designed to feel memorable from the first screen while still being a clean foundation for a real-world social app.
