@@ -1,5 +1,8 @@
 # Tiramisu — Make New Friends
 
+![Tiramisu Logo](./favicon.png)
+
+
 Tiramisu is a warm, playful social discovery app built around one idea: making a new friend should feel easy, low-pressure, and a little joyful.
 
 The product blends nearby discovery, soft social prompts, and lightweight messaging to help people find common ground without the awkwardness of a cold introduction.
