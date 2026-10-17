@@ -1,12 +1,15 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabasePublishableKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 
-export const supabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey)
+export const supabaseConfigured = Boolean(
+  supabaseUrl && supabasePublishableKey
+)
 
-export const supabase: SupabaseClient | null = supabaseConfigured
-  ? createClient(supabaseUrl as string, supabasePublishableKey as string, {
+export const supabase = supabaseConfigured
+  ? createClient(supabaseUrl, supabasePublishableKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -15,4 +18,5 @@ export const supabase: SupabaseClient | null = supabaseConfigured
     })
   : null
 
-export const supabaseConfigMessage = 'Connect Supabase to unlock real sign in, profiles, and private conversations. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to your .env file.'
+export const supabaseConfigMessage =
+  'Connect Supabase to enable authentication and profiles.'
