@@ -219,9 +219,31 @@ const INITIAL_CONVERSATIONS: ExtendedConversation[] = [
   },
 ]
 
+const CONVERSATIONS_STORAGE_KEY = 'tiramisu-demo-conversations'
+
+function isStoredConversation(value: unknown): value is ExtendedConversation {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('id' in value) || !('title' in value) || !('messages' in value) ||
+    !('preview' in value) || !('time' in value) || !('unread' in value)) return false
+  return typeof value.id === 'string' &&
+    typeof value.title === 'string' &&
+    typeof value.preview === 'string' &&
+    typeof value.time === 'string' &&
+    typeof value.unread === 'number' &&
+    Array.isArray(value.messages) &&
+    value.messages.every((message: unknown) =>
+      typeof message === 'object' && message !== null &&
+      'id' in message && typeof message.id === 'string' &&
+      'from' in message && (message.from === 'me' || message.from === 'them') &&
+      'text' in message && typeof message.text === 'string' &&
+      'time' in message && typeof message.time === 'string')
+}
+
 export function MessagesPage() {
   const [conversations, setConversations] = useState<ExtendedConversation[]>(INITIAL_CONVERSATIONS)
   const [activeId, setActiveId] = useState<string>(INITIAL_CONVERSATIONS[0].id)
+  const [persistenceReady, setPersistenceReady] = useState(false)
+  const [persistenceError, setPersistenceError] = useState('')
   const [tab, setTab] = useState<TabType>('all')
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState('')
@@ -243,8 +265,43 @@ export function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  useEffect(() => {
+    try {
+      const serialized = window.localStorage.getItem(CONVERSATIONS_STORAGE_KEY)
+      if (serialized) {
+        const stored: unknown = JSON.parse(serialized)
+        if (typeof stored !== 'object' || stored === null ||
+          !('conversations' in stored) || !Array.isArray(stored.conversations) ||
+          !stored.conversations.every(isStoredConversation)) {
+          throw new Error('Saved messages could not be read. Starting with sample conversations.')
+        }
+        setConversations(stored.conversations)
+        if ('activeId' in stored && typeof stored.activeId === 'string' &&
+          stored.conversations.some((conversation) => conversation.id === stored.activeId)) {
+          setActiveId(stored.activeId)
+        } else {
+          setActiveId(stored.conversations[0]?.id ?? INITIAL_CONVERSATIONS[0].id)
+        }
+      }
+    } catch (error) {
+      setPersistenceError(error instanceof Error ? error.message : 'Saved messages could not be loaded.')
+    } finally {
+      setPersistenceReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!persistenceReady) return
+    try {
+      window.localStorage.setItem(CONVERSATIONS_STORAGE_KEY, JSON.stringify({ conversations, activeId }))
+      setPersistenceError('')
+    } catch (error) {
+      setPersistenceError(error instanceof Error ? error.message : 'Messages could not be saved on this device.')
+    }
+  }, [activeId, conversations, persistenceReady])
+
   const activeConversation = useMemo(
-    () => conversations.find((c) => c.id === activeId) ?? conversations[0],
+    () => conversations.find((c) => c.id === activeId) ?? conversations[0] ?? INITIAL_CONVERSATIONS[0],
     [conversations, activeId]
   )
 
@@ -437,6 +494,12 @@ export function MessagesPage() {
   function startVoiceRecording() {
     setShowVoiceModal(true)
     setVoiceRecordingActive(true)
+    setVoiceRecordingSeconds(0)
+  }
+
+  function closeVoiceModal() {
+    setVoiceRecordingActive(false)
+    setShowVoiceModal(false)
     setVoiceRecordingSeconds(0)
   }
 
@@ -643,17 +706,18 @@ export function MessagesPage() {
           <div className="dm-sidebar-footer">
             <div className="dm-sidebar-status">
               <span className="dm-notice-dot" />
-              <span>Realtime active</span>
+              <span>Saved on this device</span>
             </div>
             <button
               className="dm-voice-studio-trigger"
-              onClick={() => setShowVoiceModal(true)}
+              onClick={startVoiceRecording}
               title="Voice note studio"
             >
               <Volume2 size={13} />
               <span>Voice</span>
             </button>
           </div>
+          {persistenceError && <p className="dm-persistence-error" role="status">{persistenceError}</p>}
         </aside>
 
         {/* ====================================================================
@@ -770,7 +834,16 @@ export function MessagesPage() {
                     <button
                       className="dm-contact-item"
                       onClick={() => {
-                        alert('Chat history exported (demo preview)')
+                        const transcript = activeConversation.messages
+                          .map((message) => `${message.time} · ${message.from === 'me' ? 'You' : message.senderName || activeConversation.title}: ${message.text}`)
+                          .join('\n')
+                        const file = new Blob([transcript], { type: 'text/plain;charset=utf-8' })
+                        const url = URL.createObjectURL(file)
+                        const link = document.createElement('a')
+                        link.href = url
+                        link.download = `${activeConversation.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-conversation.txt`
+                        link.click()
+                        URL.revokeObjectURL(url)
                         setHeaderMenuOpen(false)
                       }}
                       style={{ fontSize: 12 }}
@@ -1312,13 +1385,13 @@ export function MessagesPage() {
 
       {/* Voice Note Recording Simulator Modal (ElevenLabs ready) */}
       {showVoiceModal && (
-        <div className="dm-modal-backdrop" onClick={() => setShowVoiceModal(false)}>
+        <div className="dm-modal-backdrop" onClick={closeVoiceModal}>
           <div className="dm-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="dm-modal-header">
               <h3>Voice Note Studio</h3>
               <button
                 className="dm-details-close-btn"
-                onClick={() => setShowVoiceModal(false)}
+                onClick={closeVoiceModal}
               >
                 <X size={16} />
               </button>
@@ -1354,7 +1427,7 @@ export function MessagesPage() {
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button
                   className="dm-tab-btn"
-                  onClick={() => setShowVoiceModal(false)}
+                  onClick={closeVoiceModal}
                 >
                   Cancel
                 </button>

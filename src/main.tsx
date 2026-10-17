@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import './styles/global.css'
 import './styles/demo-overrides.css'
 import './styles/tiramisu-theme.css'
+import './styles/messages-copilot.css'
 import App from './App'
 import { AuthProvider } from './lib/AuthContext'
 
