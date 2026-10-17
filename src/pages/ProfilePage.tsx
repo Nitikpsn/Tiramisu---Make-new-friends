@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Globe2, Lock, MapPin, Pencil, ShieldCheck, UserRound } from 'lucide-react'
 import { Avatar } from '../components/Brand'
 import { InterestPill, PageHeader, PrimaryButton, SavedNotice } from '../components/UI'
 import { useAuth } from '../lib/AuthContext'
+import { supabase } from '../lib/supabase'
 import { navigateTo } from '../lib/utils'
 
 type ProfilePreferences = {
@@ -58,13 +59,48 @@ export function ProfilePage() {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
-  function save() {
+  useEffect(() => {
+    if (!user || !supabase) return
+    let active = true
+    void supabase.from('profiles').select('display_name, bio, interests, visibility, location_sharing').eq('id', user.id).maybeSingle().then(({ data }) => {
+      if (!active || !data) return
+      const nextProfile: ProfilePreferences = {
+        name: data.display_name || profile.name,
+        bio: data.bio || '',
+        interests: Array.isArray(data.interests) ? data.interests : [],
+        visibility: data.visibility || 'Community',
+        locationSharing: Boolean(data.location_sharing),
+        notificationsEnabled: profile.notificationsEnabled,
+      }
+      setProfile(nextProfile)
+      setSavedProfile(nextProfile)
+      setInterestsInput(nextProfile.interests.join(', '))
+      window.localStorage.setItem(profileKey, JSON.stringify(nextProfile))
+    })
+    return () => { active = false }
+  }, [profileKey, user])
+
+  async function persistProfile(nextProfile: ProfilePreferences) {
+    window.localStorage.setItem(profileKey, JSON.stringify(nextProfile))
+    if (!user || !supabase) return
+    const { error: saveError } = await supabase.from('profiles').upsert({
+      id: user.id,
+      display_name: nextProfile.name.trim(),
+      bio: nextProfile.bio.trim(),
+      interests: nextProfile.interests,
+      visibility: nextProfile.visibility,
+      location_sharing: nextProfile.locationSharing,
+    })
+    if (saveError) throw saveError
+  }
+
+  async function save() {
     const nextProfile = {
       ...profile,
       interests: interestsInput.split(',').map((interest) => interest.trim()).filter(Boolean),
     }
     try {
-      window.localStorage.setItem(profileKey, JSON.stringify(nextProfile))
+      await persistProfile(nextProfile)
       setProfile(nextProfile)
       setSavedProfile(nextProfile)
       setInterestsInput(nextProfile.interests.join(', '))
@@ -84,11 +120,11 @@ export function ProfilePage() {
     setError('')
   }
 
-  function savePreference(nextProfile: ProfilePreferences) {
+  async function savePreference(nextProfile: ProfilePreferences) {
     setProfile(nextProfile)
     setSavedProfile(nextProfile)
     try {
-      window.localStorage.setItem(profileKey, JSON.stringify(nextProfile))
+      await persistProfile(nextProfile)
       setError('')
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Your preference could not be saved.')

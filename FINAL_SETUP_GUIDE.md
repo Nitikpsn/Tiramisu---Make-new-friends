@@ -93,7 +93,7 @@ Edit `.env.local`:
 
 ```bash
 VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_BROWSER_SAFE_PUBLISHABLE_OR_ANON_KEY
+VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_BROWSER_SAFE_PUBLISHABLE_OR_ANON_KEY
 ```
 
 Replace the placeholder values with the values from your Supabase project.
@@ -390,7 +390,7 @@ Set these environment variables in the deployment provider:
 
 ```text
 VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
+VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
 Then add the deployed URL to Supabase **Authentication → URL Configuration**.

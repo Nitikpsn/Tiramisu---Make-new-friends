@@ -67,7 +67,7 @@ http://localhost:3000
 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=your-browser-safe-publishable-or-anon-key
 ```
 
 3. Add your local and production app URLs to the Supabase authentication redirect settings.
@@ -113,6 +113,38 @@ Examples:
 ## Deployment
 
 Build for deployment with:
+### Vercel
+
+Import the GitHub repository into Vercel and use these settings (they are also committed in `vercel.json`):
+
+- **Framework Preset:** Vite
+- **Install Command:** `npm ci`
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist`
+- **Root Directory:** `.`
+
+Add these Environment Variables for **Production**, **Preview**, and **Development**:
+
+```text
+VITE_SUPABASE_URL=https://wnwuxsnokhyuitvynvqq.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-browser-safe-publishable-key
+```
+
+Do not add `Tiramisu_SUPABASE_SECRET_KEY`, `Tiramisu_SUPABASE_JWT_SECRET`, either Postgres URL, the database password, or any service-role/secret key to a Vercel frontend environment. Vercel rebuilds the frontend when these variables change, so redeploy after saving them.
+
+In Supabase **Authentication → URL Configuration**, set the **Site URL** to your production Vercel domain and add these redirect URLs:
+
+```text
+https://your-project.vercel.app/**
+https://your-custom-domain.example/**
+http://localhost:3000/**
+```
+
+The committed Vercel rewrite keeps client-side routes working when a user refreshes `/login`, `/discover`, `/messages`, `/joy`, or `/profile`.
+
+### Other static hosts
+
+For a static deployment, build with:
 
 ```bash
 npm run build
